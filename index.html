@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="마크다운으로 쓰는 개인 블로그">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff">
+  <title>my-blog</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+  <script>
+    // CSS가 적용되기 전에 테마를 결정해 깜빡임을 막는다.
+    (() => {
+      let theme = null;
+      try { theme = localStorage.getItem('theme'); } catch (e) { /* 저장소 접근 불가 */ }
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = theme;
+      // CSS가 아직 없으므로 --color-bg 값을 직접 쓴다 (로드 후에는 theme.js가 CSS 변수로 갱신).
+      document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#0f1115' : '#ffffff';
+    })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="site-title" href="#/"><span class="logo-mark" aria-hidden="true">m</span>my-blog</a>
+      <div class="header-actions">
+        <nav class="site-nav" aria-label="주 메뉴">
+          <a href="#/" data-nav="posts">글</a>
+          <a href="#/tags" data-nav="tags">태그</a>
+        </nav>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="다크 모드로 전환">
+          <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+          </svg>
+          <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- 데스크톱에서만 보이는 전체 글 목록 (js/sidebar.js가 채움) -->
+    <aside class="sidebar" id="sidebar" aria-label="전체 글"></aside>
+
+    <main id="main" class="container" tabindex="-1">
+      <p class="status">글을 불러오는 중…</p>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 2026 my-blog · 마크다운으로 쓰는 기록</p>
+    </div>
+  </footer>
+
+  <noscript>
+    <p class="container status">이 블로그는 JavaScript가 필요합니다.</p>
+  </noscript>
+</body>
+</html>
