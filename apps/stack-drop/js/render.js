@@ -1,9 +1,9 @@
-// Canvas 그리기: 게임판(격자·고정 블록·그림자·현재 조각·삭제 연출), 다음 조각 미리보기, 보관 칸.
+// Canvas 그리기: 게임판(격자·고정 블록·현재 조각·삭제 연출), 다음 조각 미리보기, 보관 칸.
 // 색은 CSS 변수를 getComputedStyle로 읽어 캐시하고, 테마가 바뀔 때만 다시 읽는다.
 // 내부 해상도는 devicePixelRatio만큼 키워 고해상도 화면에서도 선명하게 그린다.
 
 import { COLS, ROWS, HIDDEN_ROWS, VISIBLE_ROWS, SHAPES, typeIndex } from './pieces.js';
-import { ghostY, clearDuration } from './game.js';
+import { clearDuration } from './game.js';
 
 const MIN_CELL = 14;
 
@@ -16,7 +16,6 @@ function readColors() {
     blocks,
     boardBg: get('--board-bg'),
     grid: get('--grid-line'),
-    ghostAlpha: Number.parseFloat(get('--ghost-alpha')) || 0.12,
     flash: get('--flash'),
     highlight: get('--block-highlight'),
     outline: get('--color-accent'),
@@ -54,22 +53,6 @@ function drawBlock(ctx, colors, px, py, cell, color) {
   ctx.fillStyle = colors.highlight;
   ctx.fillRect(x, y, size, Math.max(1, cell * 0.08));
   ctx.restore();
-}
-
-function drawGhostBlock(ctx, colors, px, py, cell, color) {
-  const inset = 1.25;
-  const x = px + inset;
-  const y = py + inset;
-  const size = cell - inset * 2;
-  roundRectPath(ctx, x, y, size, size, cell * 0.18);
-  ctx.save();
-  ctx.globalAlpha = colors.ghostAlpha;
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.restore();
-  ctx.lineWidth = 1.5;
-  ctx.strokeStyle = color;
-  ctx.stroke();
 }
 
 function setupCanvas(canvas, cssWidth, cssHeight) {
@@ -204,15 +187,6 @@ export function createRenderer({ boardCanvas, holder, nextCanvases, holdCanvas, 
     if (!piece || current.phase === 'over') return;
     const color = colors.blocks[typeIndex(piece.type) - 1];
     const cells = SHAPES[piece.type][piece.rot];
-
-    const gy = ghostY(current);
-    if (gy !== piece.y) {
-      cells.forEach(([cx, cy]) => {
-        const row = gy + cy;
-        if (row < HIDDEN_ROWS) return;
-        drawGhostBlock(ctx, colors, (piece.x + cx) * cell, (row - HIDDEN_ROWS) * cell, cell, color);
-      });
-    }
 
     cells.forEach(([cx, cy]) => {
       const row = piece.y + cy;

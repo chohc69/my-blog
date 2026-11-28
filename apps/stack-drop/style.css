@@ -52,7 +52,6 @@
   --board-bg: #eef6f5;
   --board-border: #c4dbd8;
   --grid-line: #b4cbc8;
-  --ghost-alpha: 0.12;
   --flash: #ccfbf1;
   --preview-bg: #f3f8f7;
   --overlay-bg: rgba(238, 246, 245, 0.94);
@@ -96,7 +95,6 @@
   --board-bg: #0e1a1c;
   --board-border: #22393b;
   --grid-line: #2a4143;
-  --ghost-alpha: 0.14;
   --flash: #f0fdfa;
   --preview-bg: #121e20;
   --overlay-bg: rgba(14, 26, 28, 0.94);
