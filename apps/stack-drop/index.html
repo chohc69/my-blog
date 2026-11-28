@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="떨어지는 블록을 돌리고 쌓아 가로줄을 지우는 퍼즐. ↓를 누르고 있으면 빨리 내려가요.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff">
+  <title>스택 드롭 · my-blog</title>
+  <link rel="icon" href="preview.svg" type="image/svg+xml">
+  <script>
+    // CSS가 적용되기 전에 테마와 임베드 모드를 결정해 깜빡임을 막는다.
+    // 우선순위: ?theme 파라미터 → localStorage 'theme'(블로그와 공유) → 시스템 설정
+    (() => {
+      const root = document.documentElement;
+      const params = new URLSearchParams(location.search);
+      let theme = params.get('theme');
+      if (theme !== 'light' && theme !== 'dark') {
+        try { theme = localStorage.getItem('theme'); } catch (e) { theme = null; }
+      }
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      root.dataset.theme = theme;
+      if (params.get('embed') === '1') root.dataset.embed = '';
+      // CSS가 아직 없으므로 --color-bg 값을 직접 쓴다 (로드 후에는 theme.js가 CSS 변수로 갱신).
+      document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#0f1115' : '#ffffff';
+    })();
+  </script>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-header__inner">
+      <a class="back-link" href="../../index.html"><span aria-hidden="true">←</span> 블로그</a>
+      <h1 class="app-title">스택 드롭</h1>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="다크 모드로 전환">
+        <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+        </svg>
+        <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="app" id="main">
+    <section class="hud" aria-label="점수판">
+      <dl class="stats">
+        <div class="stat stat--score"><dt>점수</dt><dd id="score-value">0</dd></div>
+        <div class="stat"><dt>최고</dt><dd id="best-value">0</dd></div>
+        <div class="stat"><dt>레벨</dt><dd id="level-value">1</dd></div>
+        <div class="stat"><dt>줄</dt><dd id="lines-value">0</dd></div>
+      </dl>
+      <button class="pause-button" id="pause-button" type="button" aria-label="일시정지" aria-pressed="false" disabled>
+        <svg class="icon icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 5v14M15 5v14" />
+        </svg>
+        <span class="pause-button__text" id="pause-text" aria-hidden="true">일시정지</span>
+      </button>
+    </section>
+
+    <section class="side side--hold" aria-labelledby="hold-title">
+      <h2 class="side__title" id="hold-title">보관</h2>
+      <canvas class="preview preview--hold" id="hold-canvas" aria-hidden="true"></canvas>
+      <p class="visually-hidden" id="hold-label">보관: 비어 있음</p>
+    </section>
+
+    <div class="board-holder" id="board-holder" tabindex="0" aria-label="게임 영역" aria-describedby="keys-summary">
+      <canvas class="board-canvas" id="board-canvas" role="img" aria-label="게임판"></canvas>
+
+      <div class="overlay" id="overlay" role="dialog" aria-labelledby="start-title">
+        <div class="overlay__panel" id="panel-start">
+          <h2 class="overlay__title" id="start-title">스택 드롭</h2>
+          <p class="overlay__text">블록을 돌리고 쌓아 가로줄을 가득 채우세요</p>
+          <label class="overlay__field">
+            <span>시작 레벨</span>
+            <select class="select" id="start-level">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </label>
+          <button class="button button--primary" id="start-button" type="button">시작</button>
+          <p class="overlay__hint" id="start-hint">Enter로 시작</p>
+        </div>
+
+        <div class="overlay__panel" id="panel-pause" hidden>
+          <h2 class="overlay__title" id="pause-title">일시정지</h2>
+          <button class="button button--primary" id="resume-button" type="button">계속하기</button>
+          <p class="overlay__hint">P 또는 Esc로 계속</p>
+        </div>
+
+        <div class="overlay__panel" id="panel-over" hidden>
+          <h2 class="overlay__title" id="over-title">게임 오버</h2>
+          <p class="overlay__badge" id="over-badge" hidden></p>
+          <dl class="overlay__stats">
+            <div><dt>점수</dt><dd id="over-score">0</dd></div>
+            <div><dt>줄</dt><dd id="over-lines">0</dd></div>
+            <div><dt>레벨</dt><dd id="over-level">1</dd></div>
+          </dl>
+          <button class="button button--primary" id="retry-button" type="button">다시 하기</button>
+          <p class="overlay__hint">Enter로 다시 하기</p>
+        </div>
+      </div>
+    </div>
+
+    <section class="side side--next" aria-labelledby="next-title">
+      <h2 class="side__title" id="next-title">다음</h2>
+      <canvas class="preview preview--big" id="next-0" aria-hidden="true"></canvas>
+      <div class="preview-row">
+        <canvas class="preview preview--small" id="next-1" aria-hidden="true"></canvas>
+        <canvas class="preview preview--small" id="next-2" aria-hidden="true"></canvas>
+      </div>
+      <p class="visually-hidden" id="next-label">다음: 시작 전</p>
+    </section>
+
+    <div class="pad" id="pad" role="group" aria-label="조작 버튼">
+      <button class="pad-button pad-button--ccw" type="button" data-action="ccw" aria-label="반시계 방향 회전">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v5h5" /><path d="M4.6 15a8 8 0 1 0 1.9-8.3L4 9" /></svg>
+      </button>
+      <button class="pad-button pad-button--hold" type="button" data-action="hold" aria-label="보관">
+        <span class="pad-button__text" aria-hidden="true">보관</span>
+      </button>
+      <button class="pad-button pad-button--cw" type="button" data-action="cw" aria-label="시계 방향 회전">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4v5h-5" /><path d="M19.4 15a8 8 0 1 1-1.9-8.3L20 9" /></svg>
+      </button>
+      <button class="pad-button pad-button--left" type="button" data-action="left" aria-label="왼쪽으로 이동">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+      </button>
+      <button class="pad-button pad-button--down" type="button" data-action="down" aria-label="빠르게 내리기(누르고 있기)">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9l7 7 7-7" /></svg>
+      </button>
+      <button class="pad-button pad-button--right" type="button" data-action="right" aria-label="오른쪽으로 이동">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+      </button>
+      <button class="pad-button pad-button--drop" type="button" data-action="drop" aria-label="바로 떨어뜨리기">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l6 6 6-6" /><path d="M6 12l6 6 6-6" /><path d="M5 21h14" /></svg>
+      </button>
+    </div>
+
+    <section class="records" aria-labelledby="records-title">
+      <h2 class="section-title" id="records-title">내 기록 Top 5</h2>
+      <ol class="record-list" id="record-list"></ol>
+      <p class="records__empty" id="records-empty">아직 기록이 없어요</p>
+    </section>
+
+    <section class="keys" aria-labelledby="keys-title">
+      <h2 class="section-title" id="keys-title">조작 키</h2>
+      <p class="visually-hidden" id="keys-summary">
+        방향키 좌우로 이동, 위 방향키나 X로 시계 방향 회전, Z로 반시계 방향 회전,
+        아래 방향키를 누르고 있으면 빠르게 내리기, 스페이스로 바로 떨어뜨리기, C나 Shift로 보관, P나 Esc로 일시정지.
+      </p>
+      <table class="key-table">
+        <tbody>
+          <tr><th scope="row">이동</th><td><kbd>←</kbd> <kbd>→</kbd></td></tr>
+          <tr><th scope="row">시계 회전</th><td><kbd>↑</kbd> <kbd>X</kbd></td></tr>
+          <tr><th scope="row">반시계 회전</th><td><kbd>Z</kbd></td></tr>
+          <tr><th scope="row">빠르게 내리기</th><td><kbd>↓</kbd> 누르고 있기</td></tr>
+          <tr><th scope="row">바로 떨어뜨리기</th><td><kbd>Space</kbd></td></tr>
+          <tr><th scope="row">보관</th><td><kbd>C</kbd> <kbd>Shift</kbd></td></tr>
+          <tr><th scope="row">일시정지</th><td><kbd>P</kbd> <kbd>Esc</kbd></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="visually-hidden" role="status" aria-live="polite" id="live-polite"></div>
+    <div class="visually-hidden" aria-live="assertive" id="live-assertive"></div>
+  </main>
+
+  <footer class="app-footer">
+    <p>my-blog 미니 웹앱 · 스택 드롭</p>
+  </footer>
+
+  <noscript>
+    <p class="noscript">이 게임은 JavaScript가 필요합니다.</p>
+  </noscript>
+</body>
+</html>

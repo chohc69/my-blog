@@ -143,6 +143,11 @@ const APPS = [
     title: '머지 타일',
     description: '방향키나 스와이프로 숫자 타일을 밀어 합치는 퍼즐. 메달과 최고 기록에 도전해 보세요.',
   },
+  {
+    slug: 'stack-drop',
+    title: '스택 드롭',
+    description: '떨어지는 블록을 돌리고 쌓아 가로줄을 지우는 퍼즐. ↓를 누르고 있으면 빨리 내려가요.',
+  },
 ];
 
 function renderAppCard(app) {

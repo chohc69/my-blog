@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">
+  <title>스택 드롭 미리보기</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0fdfa" />
+      <stop offset="1" stop-color="#e0f2fe" />
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ccfbf1" stop-opacity="0" />
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="1" stop-color="#ccfbf1" stop-opacity="0" />
+    </linearGradient>
+    <!-- 블록 한 칸: 24px 셀, 모서리 반경 18%, 위쪽 하이라이트 띠 -->
+    <symbol id="b" viewBox="0 0 24 24">
+      <rect x="0.5" y="0.5" width="23" height="23" rx="4.3" />
+      <rect x="0.5" y="0.5" width="23" height="2" rx="1" fill="#ffffff" fill-opacity="0.32" />
+    </symbol>
+  </defs>
+
+  <rect width="480" height="360" rx="28" fill="url(#bg)" />
+
+  <!-- 판: 10열 × 13행 일부, 셀 24px, 원점 (120, 24) -->
+  <rect x="116" y="20" width="248" height="320" rx="10" fill="#eef6f5" stroke="#c4dbd8" stroke-width="2" />
+  <g stroke="#6a8a87" stroke-opacity="0.28" stroke-width="1">
+    <path d="M144 24V336M168 24V336M192 24V336M216 24V336M240 24V336M264 24V336M288 24V336M312 24V336M336 24V336" />
+    <path d="M120 48H360M120 72H360M120 96H360M120 120H360M120 144H360M120 168H360M120 192H360M120 216H360M120 240H360M120 264H360M120 288H360M120 312H360" />
+  </g>
+
+  <!-- 떨어지는 조각 (ㅗ 모양) -->
+  <g fill="#0369a1">
+    <use href="#b" x="216" y="72" width="24" height="24" />
+    <use href="#b" x="192" y="96" width="24" height="24" />
+    <use href="#b" x="216" y="96" width="24" height="24" />
+    <use href="#b" x="240" y="96" width="24" height="24" />
+  </g>
+  <g fill="none" stroke="#4f46e5" stroke-width="1" stroke-opacity="0.7">
+    <rect x="217" y="73" width="22" height="22" rx="4" />
+    <rect x="193" y="97" width="22" height="22" rx="4" />
+    <rect x="217" y="97" width="22" height="22" rx="4" />
+    <rect x="241" y="97" width="22" height="22" rx="4" />
+  </g>
+
+  <!-- 그림자 (점선 윤곽) -->
+  <g fill="#0369a1" fill-opacity="0.12" stroke="#0369a1" stroke-width="1.5" stroke-dasharray="3 3">
+    <rect x="217.5" y="217.5" width="21" height="21" rx="4" />
+    <rect x="193.5" y="241.5" width="21" height="21" rx="4" />
+    <rect x="217.5" y="241.5" width="21" height="21" rx="4" />
+    <rect x="241.5" y="241.5" width="21" height="21" rx="4" />
+  </g>
+
+  <!-- 쌓인 블록 -->
+  <g fill="#047857">
+    <use href="#b" x="120" y="240" width="24" height="24" />
+    <use href="#b" x="120" y="264" width="24" height="24" />
+    <use href="#b" x="144" y="264" width="24" height="24" />
+  </g>
+  <g fill="#0d9488">
+    <use href="#b" x="312" y="216" width="24" height="24" />
+    <use href="#b" x="336" y="216" width="24" height="24" />
+    <use href="#b" x="336" y="240" width="24" height="24" />
+    <use href="#b" x="336" y="264" width="24" height="24" />
+  </g>
+  <g fill="#0e7490">
+    <use href="#b" x="264" y="240" width="24" height="24" />
+    <use href="#b" x="288" y="240" width="24" height="24" />
+    <use href="#b" x="288" y="264" width="24" height="24" />
+    <use href="#b" x="312" y="264" width="24" height="24" />
+  </g>
+  <g fill="#115e59">
+    <use href="#b" x="168" y="264" width="24" height="24" />
+    <use href="#b" x="192" y="264" width="24" height="24" />
+    <use href="#b" x="216" y="264" width="24" height="24" />
+    <use href="#b" x="240" y="264" width="24" height="24" />
+  </g>
+  <g fill="#0284c7">
+    <use href="#b" x="264" y="264" width="24" height="24" />
+    <use href="#b" x="312" y="240" width="24" height="24" />
+  </g>
+
+  <!-- 맨 아래 두 줄: 가득 찬 "삭제 직전" 행이 밝게 빛남 -->
+  <g fill="#059669">
+    <use href="#b" x="120" y="288" width="24" height="24" />
+    <use href="#b" x="144" y="288" width="24" height="24" />
+    <use href="#b" x="168" y="288" width="24" height="24" />
+    <use href="#b" x="192" y="288" width="24" height="24" />
+    <use href="#b" x="216" y="288" width="24" height="24" />
+  </g>
+  <g fill="#0e7490">
+    <use href="#b" x="240" y="288" width="24" height="24" />
+    <use href="#b" x="264" y="288" width="24" height="24" />
+    <use href="#b" x="288" y="288" width="24" height="24" />
+    <use href="#b" x="312" y="288" width="24" height="24" />
+    <use href="#b" x="336" y="288" width="24" height="24" />
+  </g>
+  <rect x="120" y="288" width="240" height="24" fill="url(#glow)" />
+  <g fill="#0d9488">
+    <use href="#b" x="120" y="312" width="24" height="24" />
+    <use href="#b" x="144" y="312" width="24" height="24" />
+    <use href="#b" x="192" y="312" width="24" height="24" />
+    <use href="#b" x="216" y="312" width="24" height="24" />
+  </g>
+  <g fill="#0369a1">
+    <use href="#b" x="240" y="312" width="24" height="24" />
+    <use href="#b" x="264" y="312" width="24" height="24" />
+    <use href="#b" x="312" y="312" width="24" height="24" />
+    <use href="#b" x="336" y="312" width="24" height="24" />
+  </g>
+
+  <!-- 좌우 장식: 다음 조각 미리보기 느낌의 작은 블록 -->
+  <g fill="#0d9488" opacity="0.85">
+    <use href="#b" x="392" y="56" width="18" height="18" />
+    <use href="#b" x="410" y="56" width="18" height="18" />
+    <use href="#b" x="374" y="74" width="18" height="18" />
+    <use href="#b" x="392" y="74" width="18" height="18" />
+  </g>
+  <g fill="#0284c7" opacity="0.6">
+    <use href="#b" x="380" y="118" width="14" height="14" />
+    <use href="#b" x="394" y="118" width="14" height="14" />
+    <use href="#b" x="408" y="118" width="14" height="14" />
+    <use href="#b" x="422" y="118" width="14" height="14" />
+  </g>
+  <g fill="#047857" opacity="0.85">
+    <use href="#b" x="52" y="56" width="18" height="18" />
+    <use href="#b" x="52" y="74" width="18" height="18" />
+    <use href="#b" x="70" y="74" width="18" height="18" />
+    <use href="#b" x="88" y="74" width="18" height="18" />
+  </g>
+</svg>
