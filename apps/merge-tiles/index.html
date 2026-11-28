@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="숫자 타일을 밀어 합치는 퍼즐. 메달과 최고 기록에 도전해 보세요.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff">
+  <title>머지 타일 · my-blog</title>
+  <link rel="icon" href="preview.svg" type="image/svg+xml">
+  <script>
+    // CSS가 적용되기 전에 테마와 임베드 모드를 결정해 깜빡임을 막는다.
+    // 우선순위: ?theme 파라미터 → localStorage 'theme'(블로그와 공유) → 시스템 설정
+    (() => {
+      const root = document.documentElement;
+      const params = new URLSearchParams(location.search);
+      let theme = params.get('theme');
+      if (theme !== 'light' && theme !== 'dark') {
+        try { theme = localStorage.getItem('theme'); } catch (e) { theme = null; }
+      }
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      root.dataset.theme = theme;
+      if (params.get('embed') === '1') root.dataset.embed = '';
+      // CSS가 아직 없으므로 --color-bg 값을 직접 쓴다 (로드 후에는 theme.js가 CSS 변수로 갱신).
+      document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#0f1115' : '#ffffff';
+    })();
+  </script>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-header__inner">
+      <a class="back-link" href="../../index.html"><span aria-hidden="true">←</span> 블로그</a>
+      <h1 class="app-title">머지 타일</h1>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="다크 모드로 전환">
+        <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+        </svg>
+        <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="app" id="main">
+    <section class="scoreboard" aria-label="점수판">
+      <div class="score-card" id="score-card">
+        <span class="score-card__label">점수</span>
+        <span class="score-card__value" id="score-value">0</span>
+      </div>
+      <div class="score-card">
+        <span class="score-card__label">최고</span>
+        <span class="score-card__value" id="best-value">0</span>
+      </div>
+    </section>
+
+    <div class="controls">
+      <button class="button button--primary" id="new-game" type="button">새 게임</button>
+      <button class="button" id="undo" type="button" aria-label="되돌리기 (1회 남음)">
+        되돌리기 <span class="button__badge" id="undo-count" aria-hidden="true">1</span>
+      </button>
+    </div>
+
+    <div class="board-area">
+      <div class="board-wrap">
+        <div class="board" id="board" role="group" tabindex="0"
+          aria-label="게임판. 방향키 또는 WASD로 타일을 밉니다." aria-describedby="help-text">
+          <div class="board__grid" aria-hidden="true">
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          </div>
+          <div class="board__tiles" id="tile-layer" aria-hidden="true"></div>
+        </div>
+
+        <p class="toast" id="toast" aria-hidden="true" hidden></p>
+
+        <p class="board-hint" id="board-hint" aria-hidden="true" hidden>클릭해서 시작</p>
+
+        <div class="overlay" id="overlay" hidden>
+          <div class="overlay__panel" role="group" aria-labelledby="overlay-title">
+            <h2 class="overlay__title" id="overlay-title">게임 오버</h2>
+            <dl class="overlay__stats">
+              <div><dt>최종 점수</dt><dd id="overlay-score">0</dd></div>
+              <div><dt>최고 타일</dt><dd id="overlay-tile">0</dd></div>
+              <div><dt>메달</dt><dd id="overlay-medal">없음</dd></div>
+            </dl>
+            <div class="overlay__actions">
+              <button class="button button--primary" id="retry" type="button">다시 하기</button>
+              <button class="button" id="overlay-undo" type="button" hidden>한 수 되돌리기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="read-board" id="read-board" type="button">판 읽기 (B)</button>
+      <p class="help" id="help-text">방향키/WASD 또는 스와이프로 타일을 밀어 합치세요</p>
+    </div>
+
+    <section class="medals" aria-labelledby="medals-title">
+      <h2 class="section-title" id="medals-title">메달</h2>
+      <ul class="medal-list" id="medal-list">
+        <li class="medal medal--bronze" data-medal="bronze"><span class="medal__badge" aria-hidden="true">동</span><span class="visually-hidden"></span></li>
+        <li class="medal medal--silver" data-medal="silver"><span class="medal__badge" aria-hidden="true">은</span><span class="visually-hidden"></span></li>
+        <li class="medal medal--gold" data-medal="gold"><span class="medal__badge" aria-hidden="true">금</span><span class="visually-hidden"></span></li>
+        <li class="medal medal--platinum" data-medal="platinum"><span class="medal__badge" aria-hidden="true">백금</span><span class="visually-hidden"></span></li>
+        <li class="medal medal--master" data-medal="master"><span class="medal__badge" aria-hidden="true">★</span><span class="visually-hidden"></span></li>
+      </ul>
+    </section>
+
+    <section class="records" aria-labelledby="records-title">
+      <h2 class="section-title" id="records-title">내 기록 Top 5</h2>
+      <ol class="record-list" id="record-list"></ol>
+      <p class="records__empty" id="records-empty">아직 기록이 없어요</p>
+    </section>
+
+    <div class="visually-hidden" role="status" aria-live="polite" id="live-polite"></div>
+    <div class="visually-hidden" aria-live="assertive" id="live-assertive"></div>
+  </main>
+
+  <footer class="app-footer">
+    <p>my-blog 미니 웹앱 · 머지 타일</p>
+  </footer>
+
+  <dialog class="dialog" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-desc">
+    <form method="dialog">
+      <h2 class="dialog__title" id="confirm-title">새 게임을 시작할까요?</h2>
+      <p class="dialog__desc" id="confirm-desc">지금 판은 기록에 남기고 끝냅니다.</p>
+      <div class="dialog__actions">
+        <button class="button" type="submit" value="cancel">계속하기</button>
+        <button class="button button--primary" type="submit" value="confirm">새 게임</button>
+      </div>
+    </form>
+  </dialog>
+
+  <noscript>
+    <p class="noscript">이 게임은 JavaScript가 필요합니다.</p>
+  </noscript>
+</body>
+</html>

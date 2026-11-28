@@ -136,12 +136,47 @@ function renderHero(posts) {
     </section>`;
 }
 
+// 미니 웹앱 목록. 앱은 apps/<slug>/에 자체 완결되어 있다.
+const APPS = [
+  {
+    slug: 'merge-tiles',
+    title: '머지 타일',
+    description: '방향키나 스와이프로 숫자 타일을 밀어 합치는 퍼즐. 메달과 최고 기록에 도전해 보세요.',
+  },
+];
+
+function renderAppCard(app) {
+  const base = `apps/${escapeHtml(app.slug)}/`;
+  return `
+    <li class="post-card app-card">
+      <img class="app-card-preview" src="${base}preview.svg" alt=""
+        width="480" height="360" loading="lazy">
+      <div class="app-card-body">
+        <p class="post-card-meta"><span class="post-card-label">웹앱</span></p>
+        <h3 class="post-card-title">
+          <a href="${base}">${escapeHtml(app.title)}</a>
+        </h3>
+        <p class="post-card-desc">${escapeHtml(app.description)}</p>
+      </div>
+    </li>`;
+}
+
+function renderAppList() {
+  if (!APPS.length) return '';
+  return `
+    <section aria-labelledby="apps-title">
+      <h2 class="section-title" id="apps-title">미니 웹앱</h2>
+      <ul class="post-list app-list">${APPS.map(renderAppCard).join('')}</ul>
+    </section>`;
+}
+
 export function renderHome(posts) {
   return {
     title: SITE_TITLE,
     nav: 'posts',
     html: `
       ${renderHero(posts)}
+      ${renderAppList()}
       ${posts.length ? renderSearchBox() : ''}
       <h2 class="section-title">모든 글</h2>
       ${renderPostList(posts, { featureFirst: true })}`,
